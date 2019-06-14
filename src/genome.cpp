@@ -255,18 +255,31 @@ struct DeBrujinGraph {
         printf("Analysing...\n");
         int numHead = 0;
         int totNode;
-        int cntSucc[5] = { 0 };
+        // int cntSucc[5] = { 0 };
+        // int cntPrev[5] = { 0 };
+        map<pair<int, int>, int> cnt;
+        for (int i = 0; i <= 4; ++i) {
+            for (int j = 0; j <= 4; ++j)
+                cnt[make_pair(i, j)] = 0;
+        }
         for (auto&& node : nodes) {
-            ++totNode;
-            if (node->numFrom() == 0) {
-                ++numHead;
-            }
-            ++cntSucc[node->numTo()];
+            // ++cntPrev[node->numFrom()];
+            // ++cntSucc[node->numTo()];
+            cnt[make_pair(node->numFrom(), node->numTo())]++;
             // printf("%s %s\n", node.second->data.c_str(), node.first.data.c_str());
         }
-        printf("%d/%d to --0: %6d --1: %6d --2: %6d --3: %6d --4: %6d\n", numHead, totNode, cntSucc[0], cntSucc[1], cntSucc[2], cntSucc[3], cntSucc[4]);
+        printf("From/To: \n");
+        for (int i = 0; i <= 4; ++i) {
+            for (int j = 0; j <= 4; ++j) {
+                printf("%7d", cnt[make_pair(i, j)]);
+            }
+            printf("\n");
+        }
+        // printf("%d/%d to --0: %6d --1: %6d --2: %6d --3: %6d --4: %6d\n", numHead, totNode, cntSucc[0], cntSucc[1], cntSucc[2], cntSucc[3], cntSucc[4]);
     }
-
+    void removeBubble()
+    {
+    }
     int dfsExtLen(int currId)
     {
         if (extLen[currId] != 0) {
