@@ -189,6 +189,14 @@ struct DBGNode : Genome {
         data.assign(g.data);
         init();
     }
+    int numTo()
+    {
+        int n = 0;
+        for (int i = 0; i < 4; ++i)
+            if (to[i] != nullptr)
+                ++n;
+        return n;
+    }
     int numFrom()
     {
         int n = 0;
@@ -244,16 +252,19 @@ struct DeBrujinGraph {
     }
     void analysis()
     {
+        printf("Analysing...\n");
         int numHead = 0;
         int totNode;
+        int cntSucc[5] = { 0 };
         for (auto&& node : nodes) {
             ++totNode;
             if (node->numFrom() == 0) {
                 ++numHead;
             }
+            ++cntSucc[node->numTo()];
             // printf("%s %s\n", node.second->data.c_str(), node.first.data.c_str());
         }
-        printf("%d/%d\n", numHead, totNode);
+        printf("%d/%d to --0: %6d --1: %6d --2: %6d --3: %6d --4: %6d\n", numHead, totNode, cntSucc[0], cntSucc[1], cntSucc[2], cntSucc[3], cntSucc[4]);
     }
 
     int dfsExtLen(int currId)
@@ -346,6 +357,7 @@ main()
     auto genomes = readFasta(cfg.shortPath1);
     extendGenomes(genomes);
     auto graph = new DeBrujinGraph(genomes);
-    graph->output();
+    graph->analysis();
+    // graph->output();
     return 0;
 }

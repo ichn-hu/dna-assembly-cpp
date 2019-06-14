@@ -5,5 +5,7 @@
 	"standard_deviation": 10,
 	"short_read_error_rate": 0.01,
 	"long_read_length": 1000,
-	"long_read_error_rate": 0.15
+	"long_read_error_rate": 0.15,
+	"long_num": 5000,
+	"short_num": 25000
 }
