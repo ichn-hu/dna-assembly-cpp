@@ -22,7 +22,7 @@ struct Config {
 };
 
 #ifdef DATA1
-Config cfg("data1");
+Config cfg("data1", 29);
 #define CONFIG
 #endif
 #ifdef DATA2

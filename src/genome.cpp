@@ -165,10 +165,14 @@ struct DBGNode;
 struct DBGEdge {
     DBGNode* node;
     int cvg;
+    int leadToLoop;
+    bool visited;
     DBGEdge(DBGNode* node = nullptr, int cvg = 0)
         : node(node)
         , cvg(cvg)
     {
+        leadToLoop = 0;
+        visited = false;
     }
 };
 
@@ -250,9 +254,9 @@ struct DeBrujinGraph {
         printf("done\n");
         fflush(stdout);
     }
-    void analysis()
+    void analysisNodeInOut()
     {
-        printf("Analysing...\n");
+        printf("Analysing node in out degree...\n");
         int numHead = 0;
         int totNode;
         // int cntSucc[5] = { 0 };
@@ -276,6 +280,81 @@ struct DeBrujinGraph {
             printf("\n");
         }
         // printf("%d/%d to --0: %6d --1: %6d --2: %6d --3: %6d --4: %6d\n", numHead, totNode, cntSucc[0], cntSucc[1], cntSucc[2], cntSucc[3], cntSucc[4]);
+    }
+
+    vector<int> timeStamp;
+    int visClk;
+    int dfsFindLoop(DBGNode* u)
+    {
+        timeStamp[u->id] = ++visClk;
+        int uLow = timeStamp[u->id];
+        int numTo = u->numTo();
+        for (int i = 0; i < 4; ++i) {
+            auto v = u->to[i];
+            if (v != nullptr) {
+                if (timeStamp[v->node->id] == 0) {
+                    int vLow = dfsFindLoop(v->node);
+                    if (vLow < uLow) {
+                        uLow = vLow;
+                        if (numTo > 1) {
+                            v->leadToLoop = vLow;
+                        }
+                    }
+                } else {
+                    uLow = min(uLow, timeStamp[v->node->id]);
+                }
+            }
+        }
+        return uLow;
+    }
+    void findLoop()
+    {
+        visClk = 0;
+        timeStamp.resize(nodes.size());
+        fill(timeStamp.begin(), timeStamp.end(), 0);
+        for (auto&& u : nodes) {
+            if (u->numFrom() == 0 && timeStamp[u->id] == 0) {
+                dfsFindLoop(u);
+            }
+        }
+    }
+    void analysisLoop()
+    {
+        printf("Analysing loop... ");
+        fflush(stdout);
+        findLoop();
+        int loopCnt = 0;
+        for (auto&& u : nodes) {
+            for (int i = 0; i < 4; ++i) {
+                auto v = u->to[i];
+                if (v != nullptr && v->leadToLoop != 0) {
+                    ++loopCnt;
+                }
+            }
+        }
+        printf("%d loops found\n", loopCnt);
+        /*
+        ➜  dna-assembly-cpp git:(master) ✗ make 1
+        g++ src/genome.cpp -DDATA1 -g -o build/ass.exe
+        build/ass.exe
+        reading from ./data/data1/short_1.fasta
+        8500 genomes read from ./data/data1/short_1.fasta
+        Building DBG... done
+        Analysing node in out degree...
+        From/To:
+            0     76      0      0      0
+            76 168832    192      0      0
+            0    192      0      0      0
+            0      0      0      0      0
+            0      0      0      0      0
+        Analysing loop... 85 loops found
+        */
+        // Weird... Why 85 loops? It should be 192 loops...
+    }
+    void analysis()
+    {
+        analysisNodeInOut();
+        analysisLoop();
     }
     void removeBubble()
     {
@@ -347,6 +426,42 @@ struct DeBrujinGraph {
             }
         }
     }
+    void followLoopFirst(DBGNode* u, vector<char>& path)
+    {
+        bool hasLoop = false;
+        for (int i = 0; i < 4; ++i) {
+            auto v = u->to[i];
+            if (v != nullptr && v->leadToLoop != 0 && !v->visited) {
+                path.push_back(i2c(i));
+                v->visited = true;
+                followLoopFirst(v->node, path);
+                hasLoop = true;
+            }
+        }
+        if (!hasLoop) {
+            for (int i = 0; i < 4; ++i) {
+                auto v = u->to[i];
+                if (v != nullptr && v->leadToLoop == 0) {
+                    path.push_back(i2c(i));
+                    followLoopFirst(v->node, path);
+                    break;
+                }
+            }
+        }
+    }
+    vector<Genome> exportPaths()
+    {
+        findLoop();
+        vector<Genome> res;
+        for (auto&& u : nodes) {
+            if (u->numFrom() == 0) {
+                auto path = u->getRawData();
+                followLoopFirst(u, path);
+                res.push_back(string(path.begin(), path.end()));
+            }
+        }
+        return res;
+    }
 };
 
 void extendGenomes(vector<Genome>& genomes)
@@ -365,12 +480,32 @@ void extendGenomes(vector<Genome>& genomes)
     genomes.insert(genomes.end(), tmp.begin(), tmp.end());
 }
 
+void writeFasta(vector<Genome>& genomes, string path)
+{
+    auto f = fopen(cfg.resultPath.c_str(), "w");
+    printf("Outputing %d genomes to %s...", (int)genomes.size(), cfg.resultPath.c_str());
+    fflush(stdout);
+    int minLen = 0x3f3f3f3f, maxLen = 0, totLen = 0;
+    for (int i = 0; i < (int)genomes.size(); ++i) {
+        int len = (int)genomes[i].data.length();
+        minLen = min(minLen, len);
+        maxLen = max(maxLen, len);
+        totLen += len;
+        fprintf(f, ">%d: len = %d\n", i, len);
+        fprintf(f, "%s\n", genomes[i].data.c_str());
+    }
+    printf("done, average length %d, max %d, min %d\n", totLen / (int)genomes.size(), maxLen, minLen);
+    fflush(stdout);
+}
+
 main()
 {
     auto genomes = readFasta(cfg.shortPath1);
     extendGenomes(genomes);
     auto graph = new DeBrujinGraph(genomes);
-    graph->analysis();
+    // graph->analysis();
+    auto res = graph->exportPaths();
+    writeFasta(res, cfg.resultPath);
     // graph->output();
     return 0;
 }
