@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 using namespace std;
@@ -282,11 +283,63 @@ struct DeBrujinGraph {
         // printf("%d/%d to --0: %6d --1: %6d --2: %6d --3: %6d --4: %6d\n", numHead, totNode, cntSucc[0], cntSucc[1], cntSucc[2], cntSucc[3], cntSucc[4]);
     }
 
+    vector<multiset<int>> branches;
+    vector<int> numBranches;
+    vector<bool> visited;
+    void dfsAnalysisBranch(DBGNode* u)
+    {
+        if (visited[u->id]) {
+            return;
+        }
+        visited[u->id] = true;
+        if (u->numTo() == 0) {
+            branches[u->id].insert(u->id);
+            numBranches[u->id] = 1;
+            return;
+        }
+        for (int i = 0; i < 4; ++i) {
+            auto v = u->to[i];
+            if (v != nullptr) {
+                dfsAnalysisBranch(v->node);
+                numBranches[u->id] += numBranches[v->node->id];
+                for (auto&& t : branches[v->node->id]) {
+                    branches[u->id].insert(t);
+                }
+            }
+        }
+    }
+    void analysisBranch()
+    {
+        printf("Analyising branches ...\n");
+        branches.resize(nodes.size());
+        fill(branches.begin(), branches.end(), multiset<int>());
+
+        numBranches.resize(nodes.size());
+        fill(numBranches.begin(), numBranches.end(), 0);
+
+        visited.resize(nodes.size());
+
+        for (auto&& u : nodes) {
+            if (u->numFrom() == 0) {
+                fill(visited.begin(), visited.end(), false);
+                dfsAnalysisBranch(u);
+                printf("Num branches for %d: %d\n", u->id, numBranches[u->id]); //(int)branches[u->id].size());
+                for (auto&& t : branches[u->id]) {
+                    printf("%d ", t);
+                }
+                printf("\n");
+                fflush(stdout);
+            }
+        }
+    }
+
     vector<int> timeStamp;
+    // vector<bool> onStack;
     int visClk;
     int dfsFindLoop(DBGNode* u)
     {
         timeStamp[u->id] = ++visClk;
+        // onStack[u->id] = true;
         int uLow = timeStamp[u->id];
         int numTo = u->numTo();
         for (int i = 0; i < 4; ++i) {
@@ -309,12 +362,17 @@ struct DeBrujinGraph {
     }
     void findLoop()
     {
-        visClk = 0;
         timeStamp.resize(nodes.size());
         fill(timeStamp.begin(), timeStamp.end(), 0);
+        visClk = 0;
         for (auto&& u : nodes) {
-            if (u->numFrom() == 0 && timeStamp[u->id] == 0) {
+            if (u->numFrom() == 0) {
+                printf("Finding loop for node %d ... ", u->id);
+                visClk = 0;
+                fill(timeStamp.begin(), timeStamp.end(), 0);
                 dfsFindLoop(u);
+                printf(" done\n");
+                fflush(stdout);
             }
         }
     }
@@ -356,8 +414,44 @@ struct DeBrujinGraph {
         analysisNodeInOut();
         analysisLoop();
     }
+    void walkThroughBubble(DBGEdge* e)
+    {
+        vector<char> path;
+        auto u = e->node;
+        while (u->numTo() == 1) {
+            for (int i = 0; i < 4; ++i)
+                if (u->to[i] != nullptr) {
+                    path.push_back(i2c(i));
+                    u = u->to[i]->node;
+                    break;
+                }
+            if (u->numFrom() != 1) break;
+        }
+        printf("Walk through %d cvg = %d len = %d:", u->id, e->cvg, (int)path.size());
+        printf("%s", string(path.begin(), path.end()).c_str());
+        // for (auto&& t : path)
+        //     printf(" %d", t);
+        printf("\n");
+    }
     void removeBubble()
     {
+        int numBubble = 0;
+        for (auto&& u : nodes) {
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    auto x = u->to[i];
+                    auto y = u->to[j];
+                    if (i != j && x != nullptr && y != nullptr) {
+                        if ((double)x->cvg / y->cvg < 0.5) {
+                            ++numBubble;
+                            walkThroughBubble(x);
+                            walkThroughBubble(y);
+                        }
+                    }
+                }
+            }
+        }
+        printf("%d bubbles detected\n", numBubble);
     }
     int dfsExtLen(int currId)
     {
@@ -501,11 +595,15 @@ void writeFasta(vector<Genome>& genomes, string path)
 main()
 {
     auto genomes = readFasta(cfg.shortPath1);
+    auto tmp = readFasta(cfg.shortPath2);
+    genomes.insert(genomes.end(), tmp.begin(), tmp.end());
     extendGenomes(genomes);
     auto graph = new DeBrujinGraph(genomes);
+    graph->removeBubble();
+    // graph->analysisBranch();
     // graph->analysis();
-    auto res = graph->exportPaths();
-    writeFasta(res, cfg.resultPath);
+    // auto res = graph->exportPaths();
+    // writeFasta(res, cfg.resultPath);
     // graph->output();
     return 0;
 }
