@@ -168,12 +168,14 @@ struct DBGEdge {
     int cvg;
     int leadToLoop;
     bool visited;
+    bool removed;
     DBGEdge(DBGNode* node = nullptr, int cvg = 0)
         : node(node)
         , cvg(cvg)
     {
         leadToLoop = 0;
         visited = false;
+        removed = false;
     }
 };
 
@@ -181,6 +183,7 @@ struct DBGNode : Genome {
     DBGEdge *from[4], *to[4];
     int id;
     bool visited;
+    bool removed;
     void init()
     {
         for (int i = 0; i < 4; ++i) {
@@ -188,6 +191,7 @@ struct DBGNode : Genome {
             to[i] = nullptr;
         }
         visited = false;
+        removed = false;
     }
     DBGNode(Genome g)
     {
@@ -268,6 +272,8 @@ struct DeBrujinGraph {
                 cnt[make_pair(i, j)] = 0;
         }
         for (auto&& node : nodes) {
+            if (node->removed)
+                continue;
             // ++cntPrev[node->numFrom()];
             // ++cntSucc[node->numTo()];
             cnt[make_pair(node->numFrom(), node->numTo())]++;
@@ -414,21 +420,32 @@ struct DeBrujinGraph {
         analysisNodeInOut();
         analysisLoop();
     }
-    void walkThroughBubble(DBGEdge* e)
+    // if visited path has smaller length, then it must be a bubble, otherwise it might be a loop
+    void walkThroughBubble(DBGEdge*& e, vector<pair<DBGNode*, int>>& path)
     {
-        vector<char> path;
         auto u = e->node;
         while (u->numTo() == 1) {
-            for (int i = 0; i < 4; ++i)
+            int i;
+            for (i = 0; i < 4; ++i)
                 if (u->to[i] != nullptr) {
-                    path.push_back(i2c(i));
-                    u = u->to[i]->node;
                     break;
                 }
-            if (u->numFrom() != 1) break;
+            path.push_back(make_pair(u, i));
+            u = u->to[i]->node;
+            if (u->numFrom() != 1)
+                break;
+            // auto v = u->to[i]->node;
+            // if (v->numFrom() != 1) {
+            //     for (int j = 0; j < 4; ++j)
+            //         if (v->from[j] != nullptr && v->from[j]->node == u) {
+            //             v->from[j] = nullptr;
+            //         }
+            //     break;
+            // }
+            // u = v;
         }
-        printf("Walk through %d cvg = %d len = %d:", u->id, e->cvg, (int)path.size());
-        printf("%s", string(path.begin(), path.end()).c_str());
+        printf("Walk through %d cvg = %d len = %d:", e->node->id, e->cvg, (int)path.size());
+        // printf("%s", string(path.begin(), path.end()).c_str());
         // for (auto&& t : path)
         //     printf(" %d", t);
         printf("\n");
@@ -442,10 +459,23 @@ struct DeBrujinGraph {
                     auto x = u->to[i];
                     auto y = u->to[j];
                     if (i != j && x != nullptr && y != nullptr) {
-                        if ((double)x->cvg / y->cvg < 0.5) {
+                        if ((double)x->cvg / y->cvg < 0.7) {
                             ++numBubble;
-                            walkThroughBubble(x);
-                            walkThroughBubble(y);
+                            vector<pair<DBGNode*, int>> xpath, ypath;
+                            xpath.push_back(make_pair(x->node, i));
+                            ypath.push_back(make_pair(y->node, j));
+                            walkThroughBubble(x, xpath);
+                            // walkThroughBubble(y, ypath);
+
+                            u->to[i]->node->removed = true;
+                            u->to[i] = nullptr;
+                            auto lst = xpath.back().first;
+                            auto tgt = lst->to[xpath.back().second]->node;
+                            for (int k = 0; k < 4; ++k) {
+                                if (tgt->from[k] != nullptr && tgt->from[k]->node == lst) {
+                                    tgt->from[k] = nullptr;
+                                }
+                            }
                         }
                     }
                 }
@@ -599,11 +629,16 @@ main()
     genomes.insert(genomes.end(), tmp.begin(), tmp.end());
     extendGenomes(genomes);
     auto graph = new DeBrujinGraph(genomes);
+    graph->analysis();
     graph->removeBubble();
+    graph->analysis();
+    graph->removeBubble();
+    
+    // graph->removeBubble();
     // graph->analysisBranch();
     // graph->analysis();
-    // auto res = graph->exportPaths();
-    // writeFasta(res, cfg.resultPath);
+    auto res = graph->exportPaths();
+    writeFasta(res, cfg.resultPath);
     // graph->output();
     return 0;
 }
