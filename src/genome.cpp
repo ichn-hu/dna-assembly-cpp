@@ -418,7 +418,7 @@ struct DeBrujinGraph {
     void analysis()
     {
         analysisNodeInOut();
-        analysisLoop();
+        // analysisLoop();
     }
     // if visited path has smaller length, then it must be a bubble, otherwise it might be a loop
     void walkThroughBubble(DBGEdge*& e, vector<pair<DBGNode*, int>>& path)
@@ -465,10 +465,11 @@ struct DeBrujinGraph {
                             xpath.push_back(make_pair(x->node, i));
                             ypath.push_back(make_pair(y->node, j));
                             walkThroughBubble(x, xpath);
-                            // walkThroughBubble(y, ypath);
+                            walkThroughBubble(y, ypath);
 
-                            u->to[i]->node->removed = true;
-                            u->to[i] = nullptr;
+                            // if (xpath.back().first->to[xpath.back().second] != ypath.back().first->to[ypath.back().second] || xpath.size() < 0.5 * cfg.k)
+                                // continue;
+
                             auto lst = xpath.back().first;
                             auto tgt = lst->to[xpath.back().second]->node;
                             for (int k = 0; k < 4; ++k) {
@@ -476,6 +477,8 @@ struct DeBrujinGraph {
                                     tgt->from[k] = nullptr;
                                 }
                             }
+                            u->to[i]->node->removed = true;
+                            u->to[i] = nullptr;
                         }
                     }
                 }
@@ -629,11 +632,11 @@ main()
     genomes.insert(genomes.end(), tmp.begin(), tmp.end());
     extendGenomes(genomes);
     auto graph = new DeBrujinGraph(genomes);
+    // graph->analysis();
+    // graph->removeBubble();
     graph->analysis();
     graph->removeBubble();
-    graph->analysis();
-    graph->removeBubble();
-    
+
     // graph->removeBubble();
     // graph->analysisBranch();
     // graph->analysis();
