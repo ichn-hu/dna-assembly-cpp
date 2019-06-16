@@ -31,3 +31,5 @@ mailto: wanjunpeng@foxmail.com
 [^2]: De novo sequence assemblers <https://en.wikipedia.org/wiki/De_novo_sequence_assemblers>
 [^3]: 字符串相似度之美（一）<https://zhuanlan.zhihu.com/p/20101194>
 [^4]: <https://zhuanlan.zhihu.com/p/20102352>
+[^5]: Approximate string matching <https://en.wikipedia.org/wiki/Approximate_string_matching#endnote_CRMN01>
+

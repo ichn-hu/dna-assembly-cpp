@@ -1,3 +1,6 @@
+c:
+	g++ src/correct.cpp -g -o build/cor.exe
+	build/cor.exe
 
 1:
 	g++ src/main.cpp -DDATA1 -g -o build/ass.exe

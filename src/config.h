@@ -8,6 +8,7 @@ struct Config {
     string shortPath1;
     string shortPath2;
     string resultPath;
+    string patchesPath;
     // split reads into kmers
     int k;
     int minOutputLength;
@@ -20,6 +21,7 @@ struct Config {
         shortPath1 = DATA_ROOT_PATH + name + "/short_1.fasta";
         shortPath2 = DATA_ROOT_PATH + name + "/short_2.fasta";
         resultPath = DATA_ROOT_PATH + name + "/result.fasta";
+        patchesPath = DATA_ROOT_PATH + name + "/patches.txt";
     }
 };
 

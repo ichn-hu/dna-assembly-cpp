@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "approx_match.cpp"
 using namespace std;
 
 char comp(char c)
@@ -49,27 +50,7 @@ char i2c(int i)
     }
 }
 
-// O(n^2) to compute the minimal edit distance between two strings
-int _minEditDist(string a, string b)
-{
-    int n = a.length();
-    int m = b.length();
-    int f[n + 1][m + 1];
-    memset(f, 0x3f, sizeof f);
-    f[0][0] = 0;
-    for (int i = 1; i <= n; i++) {
-        for (int j = 1; j <= m; ++j) {
-            f[i][j] = min(f[i][j], f[i - 1][j] + 1);
-            f[i][j] = min(f[i][j], f[i][j - 1] + 1);
-            if (a[i - 1] == b[j - 1]) {
-                f[i][j] = min(f[i][j], f[i - 1][j - 1]);
-            } else {
-                f[i][j] = min(f[i][j], f[i - 1][j - 1] + 1);
-            }
-        }
-    }
-    return f[n][m];
-}
+
 
 class Genome {
 public:
@@ -97,7 +78,7 @@ public:
     }
     int minEditDist(Genome t)
     {
-        return _minEditDist(this->data, t.data);
+        return editDist(this->data, t.data);
     }
     bool operator<(const Genome rhs) const
     {
