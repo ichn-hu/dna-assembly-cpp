@@ -183,6 +183,7 @@ struct DeBrujinGraph {
     vector<int> timeStamp;
     // vector<bool> onStack;
     int visClk;
+    int loopCnt;
     int dfsFindLoop(DBGNode* u)
     {
         timeStamp[u->id] = ++visClk;
@@ -198,6 +199,7 @@ struct DeBrujinGraph {
                         uLow = vLow;
                         if (numTo > 1) {
                             v->leadToLoop = vLow;
+                            ++loopCnt;
                         }
                     }
                 } else {
@@ -214,11 +216,13 @@ struct DeBrujinGraph {
         visClk = 0;
         for (auto&& u : nodes) {
             if (u->numFrom() == 0) {
-                printf("Finding loop for node %d ... ", u->id);
+                loopCnt = 0;
                 visClk = 0;
                 fill(timeStamp.begin(), timeStamp.end(), 0);
                 dfsFindLoop(u);
-                printf(" done\n");
+                if (loopCnt != 0) {
+                    printf("Finding loop for node %d = %d \n", u->id, loopCnt);
+                }
                 fflush(stdout);
             }
         }
@@ -415,7 +419,7 @@ struct DeBrujinGraph {
             }
         }
     }
-    
+
     vector<Genome> exportPathsLengthFirst()
     {
         vector<Genome> res;
