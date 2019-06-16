@@ -10,8 +10,10 @@ struct Config {
     string resultPath;
     // split reads into kmers
     int k;
-    Config(string name, int k = 29)
+    int minOutputLength;
+    Config(string name, int k = 29, int minOutputLength = 5000)
         : k(k)
+        , minOutputLength(minOutputLength)
     {
         root = DATA_ROOT_PATH;
         longPath = DATA_ROOT_PATH + name + "/long.fasta";
@@ -26,7 +28,7 @@ Config cfg("data1", 29);
 #define CONFIG
 #endif
 #ifdef DATA2
-Config cfg("data2", 11);
+Config cfg("data2", 31);
 #define CONFIG
 #endif
 #ifdef DATA3

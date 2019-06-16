@@ -1,34 +1,34 @@
 
 1:
-	g++ src/genome.cpp -DDATA1 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA1 -g -o build/ass.exe
 	build/ass.exe
 
 2:
-	g++ src/genome.cpp -DDATA2 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA2 -g -o build/ass.exe
 	build/ass.exe
 
 3:
-	g++ src/genome.cpp -DDATA3 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA3 -g -o build/ass.exe
 	build/ass.exe
 
 4:
-	g++ src/genome.cpp -DDATA4 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA4 -g -o build/ass.exe
 	build/ass.exe
 
 d1:
-	g++ src/genome.cpp -DDATA1 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA1 -g -o build/ass.exe
 	gdb build/ass.exe
 
 d2:
-	g++ src/genome.cpp -DDATA2 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA2 -g -o build/ass.exe
 	gdb build/ass.exe
 
 d3:
-	g++ src/genome.cpp -DDATA3 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA3 -g -o build/ass.exe
 	gdb build/ass.exe
 
 d4:
-	g++ src/genome.cpp -DDATA4 -g -o build/ass.exe
+	g++ src/main.cpp -DDATA4 -g -o build/ass.exe
 	gdb build/ass.exe
 
 
