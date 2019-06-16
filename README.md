@@ -18,7 +18,7 @@ typora-copy-images-to: ./images/
 2. 入度和出度都为1，该节点为基因路径上的一段
 3. 入度或者出度大于等于2，该节点为某个分支的开始或者结束
 
-对于情况1和3都很好理解，而情况3则较为复杂。分析产生分支的原因有一下几点
+对于情况1和2都很好理解，而情况3则较为复杂。分析产生分支的原因有一下几点
 
 ### 测序错误
 
@@ -37,7 +37,6 @@ typora-copy-images-to: ./images/
    walkThroughBubble(y->node, ypath);
    ```
 
-   
 
 当上述两个条件满足时删除经过次数低的那个分支即可。
 
@@ -58,6 +57,21 @@ typora-copy-images-to: ./images/
 我使用git来管理代码，因此可以通过检查git log来证明PJ的完成过程。代码将在PJ截止后公开，可以通过[dna-assembly-cpp](<https://github.com/ichn-hu/dna-assembly-cpp>)访问。
 
 使用面向对象的方法完成程序。主要实现了`Genome`对象用来处理基本的字符串输入输出；`DBGNode`对象来表示De Brujin图中的节点，`DBGEdge`来表示图中的边，`DeBrujinGraph`来表示图。
+
+因为使用c++完成项目，我编写了Makefile便于使用make命令来进行自动化的构建。在根目录使用`make 1`即可编译并运行处理第一个数据点，类似可以处理其余数据点。
+
+结果复现。在获得结果后我及时commit了代码、可执行程序和结果。checkout到以下几个commit便可得到结果
+
+| data | commit                                     | result(NGA50) |
+| ---- | ------------------------------------------ | ------------- |
+| 1    | `557dc6a53333694eabf5408b4732d52cbe74cef3` | 9983.0        |
+| 2    | `750215dc949c9be5cbcfda988533e4179a914f7a` | 9408.2        |
+| 3    | `750215dc949c9be5cbcfda988533e4179a914f7a` | 7859.2        |
+| 4    | `64d47516a209c23e4b65d085d6a6c24c38795779` | 22275.4       |
+
+举例来说在commit`64d4751`中执行`make 4`即可自动编译并运行获得第四个数据点的输出。不过要注意第四个点递归可能出现栈溢出，需要`ulimit -s unlimited`扩大栈空间。
+
+
 
 ## 参考资料
 
