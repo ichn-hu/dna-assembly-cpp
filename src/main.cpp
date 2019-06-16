@@ -17,8 +17,8 @@ main()
     // graph->removeBubble();
     // graph->analysisBranch();
     // graph->analysis();
-    auto res = graph->exportPaths();
-    // auto res = graph->exportPathsLengthFirst();
+    // auto res = graph->exportPaths();
+    auto res = graph->exportPathsLengthFirst();
     extendGenomes(res);
 
     // auto graph2 = new DeBrujinGraph(res, Config(cfg.root, 3000));
