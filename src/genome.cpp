@@ -421,9 +421,8 @@ struct DeBrujinGraph {
         // analysisLoop();
     }
     // if visited path has smaller length, then it must be a bubble, otherwise it might be a loop
-    void walkThroughBubble(DBGEdge*& e, vector<pair<DBGNode*, int>>& path)
+    void walkThroughBubble(DBGNode* u, vector<pair<DBGNode*, int>>& path)
     {
-        auto u = e->node;
         while (u->numTo() == 1) {
             int i;
             for (i = 0; i < 4; ++i)
@@ -444,11 +443,11 @@ struct DeBrujinGraph {
             // }
             // u = v;
         }
-        printf("Walk through %d cvg = %d len = %d:", e->node->id, e->cvg, (int)path.size());
+        // printf("Walk through %d cvg = %d len = %d:", e->node->id, e->cvg, (int)path.size());
         // printf("%s", string(path.begin(), path.end()).c_str());
         // for (auto&& t : path)
         //     printf(" %d", t);
-        printf("\n");
+        // printf("\n");
     }
     void removeBubble()
     {
@@ -462,13 +461,27 @@ struct DeBrujinGraph {
                         if ((double)x->cvg / y->cvg < 0.7) {
                             ++numBubble;
                             vector<pair<DBGNode*, int>> xpath, ypath;
-                            xpath.push_back(make_pair(x->node, i));
-                            ypath.push_back(make_pair(y->node, j));
-                            walkThroughBubble(x, xpath);
-                            walkThroughBubble(y, ypath);
+                            xpath.push_back(make_pair(u, i));
+                            ypath.push_back(make_pair(u, j));
+                            walkThroughBubble(x->node, xpath);
+                            walkThroughBubble(y->node, ypath);
 
-                            // if (xpath.back().first->to[xpath.back().second] != ypath.back().first->to[ypath.back().second] || xpath.size() < 0.5 * cfg.k)
-                                // continue;
+                            auto tgt_x = xpath.back().first->to[xpath.back().second]->node;
+                            auto tgt_y = ypath.back().first->to[ypath.back().second]->node;
+
+                            if (tgt_x != tgt_y || xpath.size() < cfg.k / 2) {
+                                printf("Walk x, target at %d len = %d cvg = %d\n", tgt_x->id, (int)xpath.size(), x->cvg);
+                                for (auto &&t: xpath) {
+                                    printf("%c", i2c(t.second));
+                                }
+                                puts("");
+                                printf("Walk y, target at %d len = %d cvg = %d\n", tgt_y->id, (int)ypath.size(), y->cvg);
+                                for (auto &&t: ypath) {
+                                    printf("%c", i2c(t.second));
+                                }
+                                puts("");
+                                continue;
+                            }
 
                             auto lst = xpath.back().first;
                             auto tgt = lst->to[xpath.back().second]->node;
@@ -632,15 +645,16 @@ main()
     genomes.insert(genomes.end(), tmp.begin(), tmp.end());
     extendGenomes(genomes);
     auto graph = new DeBrujinGraph(genomes);
-    // graph->analysis();
-    // graph->removeBubble();
     graph->analysis();
     graph->removeBubble();
+    // graph->analysis();
+    // graph->removeBubble();
 
     // graph->removeBubble();
     // graph->analysisBranch();
     // graph->analysis();
     auto res = graph->exportPaths();
+    extendGenomes(res);
     writeFasta(res, cfg.resultPath);
     // graph->output();
     return 0;

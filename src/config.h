@@ -26,7 +26,7 @@ Config cfg("data1", 29);
 #define CONFIG
 #endif
 #ifdef DATA2
-Config cfg("data2");
+Config cfg("data2", 11);
 #define CONFIG
 #endif
 #ifdef DATA3

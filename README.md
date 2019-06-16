@@ -4,6 +4,10 @@ typora-copy-images-to: ./imgs
 
 [TOC]
 
+# 宏基因组组装PJ
+
+胡志峰 16307130177
+
 ## 妹她
 
 mailto: wanjunpeng@foxmail.com
@@ -25,3 +29,5 @@ mailto: wanjunpeng@foxmail.com
 
 [^1]: De Bruijn graph <https://en.wikipedia.org/wiki/De_Bruijn_graph>
 [^2]: De novo sequence assemblers <https://en.wikipedia.org/wiki/De_novo_sequence_assemblers>
+[^3]: 字符串相似度之美（一）<https://zhuanlan.zhihu.com/p/20101194>
+[^4]: <https://zhuanlan.zhihu.com/p/20102352>
