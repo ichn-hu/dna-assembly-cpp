@@ -161,7 +161,6 @@ vector<Genome> readFasta(string path)
     return ret;
 }
 
-
 void extendGenomes(vector<Genome>& genomes)
 {
     auto tmp = vector<Genome>();
