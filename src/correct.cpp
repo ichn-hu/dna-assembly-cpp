@@ -45,6 +45,10 @@ struct RepairFactory {
             findPatch(&shortReads[sid]);
             printf("\b\b\b\b\b\b\b\b\b\b\b");
             printf("%d/%d", sid, (int)shortReads.size());
+            if (sid % 100 == 0) {
+                exportPatches();
+                printf("\n export up to %d\n", sid);
+            }
             fflush(stdout);
             // break;
         }
@@ -53,20 +57,21 @@ struct RepairFactory {
     void findPatch(Genome* s)
     {
         lid = 0;
-        for (auto&& l : longReads) {
-            findPatch(&l, s);
+        #pragma opm parallel for
+        for (int i = 0; i < (int)longReads.size(); ++i) {
+            findPatch(&longReads[i], s, lid);
             ++lid;
             // if (lid % 100 == 0) {
             //     printf("%d/%d\n", lid, (int)longReads.size());
             // }
         }
     }
-    int e[1000 + 1][100 + 1];
-    void findPatch(Genome* l, Genome* s)
+    void findPatch(Genome* l, Genome* s, int lid)
     {
         auto S = l->data;
         auto T = s->data;
         int n = S.length(), m = T.length();
+        int e[1000 + 1][100 + 1];
         memset(e, 0x3f, sizeof e);
         for (int i = 0; i <= n; ++i)
             e[0][i] = 0;
@@ -92,7 +97,7 @@ struct RepairFactory {
             }
         }
         for (int i = 0; i <= n; ++i) {
-            if (e[m][i] < (int)T.length() * 0.2) {
+            if (e[m][i] < (int)T.length() * 0.22) {
                 patches.push_back(Patch(sid, lid, e[m][i], i));
             }
         }
